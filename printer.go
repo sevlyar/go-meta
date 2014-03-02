@@ -9,15 +9,17 @@ import (
 )
 
 func Fprint(w io.Writer, node interface{}) (err error) {
-	defer func() {
-		err = recover().(error)
-	}()
+	// defer func() {
+	// 	err = recover().(error)
+	// 	panic(err)
+	// }()
 
 	p := &printer{w: w}
 	p.printNode(node)
-	return
+	return nil
 }
 
+// TODO: Group methods. Append methods Stmt() Expr() Decl() Type().
 type printer struct {
 	w   io.Writer
 	ind int
@@ -59,30 +61,31 @@ func (p *printer) writeString(line string) {
 }
 
 func (p *printer) print(a ...interface{}) {
-	if _, err := fmt.Fprint(p.w, a); err != nil {
+	if _, err := fmt.Fprint(p.w, a...); err != nil {
 		panic(err)
 	}
 }
 
 func (p *printer) printIndented(a ...interface{}) {
 	p.writeIndent()
-	p.print(a)
+	p.print(a...)
 
 }
 
 func (p *printer) printf(format string, a ...interface{}) {
-	if _, err := fmt.Fprintf(p.w, format, a); err != nil {
+	if _, err := fmt.Fprintf(p.w, format, a...); err != nil {
 		panic(err)
 	}
 }
 
 func (p *printer) writeLine(a ...interface{}) {
 	p.writeIndent()
-	if _, err := fmt.Fprintln(p.w, a); err != nil {
+	if _, err := fmt.Fprintln(p.w, a...); err != nil {
 		panic(err)
 	}
 }
 
+// TODO: rename to Node
 func (p *printer) printNode(node interface{}) {
 	switch n := node.(type) {
 	case *ast.ArrayType:
@@ -378,141 +381,303 @@ func (p *printer) fieldList(list *ast.FieldList, oneline bool) {
 	}
 }
 
-func (p *printer) File(file *ast.File) {
-	p.CommentGroup(file.Doc)
-	p.print("package", file.Name.Name)
-	p.writeEol()
+func (p *printer) paramsList(list *ast.FieldList) {
+	p.print("(")
+	p.fieldList(list, true)
+	p.print(")")
+}
 
-	// TODO: extract in func
-	p.print("import (")
-	for _, imp := range file.Imports {
-		p.writeIndent()
-		p.ImportSpec(imp)
+func (p *printer) File(file *ast.File) {
+	if file.Doc != nil {
+		p.CommentGroup(file.Doc)
 	}
-	p.printIndented(")")
+	p.print("package ", file.Name.Name)
 	p.writeEol()
 
 	for _, decl := range file.Decls {
-		p.writeEol()
+		//p.writeEol()
 		p.printNode(decl)
 		p.writeEol()
 	}
 }
 
-func (p *printer) ForStmt(v *ast.ForStmt) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) FuncDecl(v *ast.FuncDecl) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) FuncLit(v *ast.FuncLit) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) FuncType(v *ast.FuncType) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) GenDecl(v *ast.GenDecl) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) GoStmt(v *ast.GoStmt) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) Ident(v *ast.Ident) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) IfStmt(v *ast.IfStmt) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) ImportSpec(v *ast.ImportSpec) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) IncDecStmt(v *ast.IncDecStmt) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) IndexExpr(v *ast.IndexExpr) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) InterfaceType(v *ast.InterfaceType) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) KeyValueExpr(v *ast.KeyValueExpr) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) LabeledStmt(v *ast.LabeledStmt) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) MapType(v *ast.MapType) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) ParenExpr(v *ast.ParenExpr) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) RangeStmt(v *ast.RangeStmt) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) ReturnStmt(v *ast.ReturnStmt) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) SelectStmt(v *ast.SelectStmt) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) SelectorExpr(v *ast.SelectorExpr) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) SendStmt(v *ast.SendStmt) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) SliceExpr(v *ast.SliceExpr) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) StarExpr(v *ast.StarExpr) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) StructType(v *ast.StructType) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) SwitchStmt(v *ast.SwitchStmt) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) TypeAssertExpr(v *ast.TypeAssertExpr) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) TypeSpec(v *ast.TypeSpec) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) TypeSwitchStmt(v *ast.TypeSwitchStmt) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) UnaryExpr(v *ast.UnaryExpr) {
-	p.print("/***", reflect.TypeOf(v), "*/")
-}
-func (p *printer) ValueSpec(v *ast.ValueSpec) {
-	p.print("/***", reflect.TypeOf(v), "*/")
+func (p *printer) ForStmt(stmt *ast.ForStmt) {
+	p.printIndented("for ")
+	if stmt.Init != nil {
+		p.printNode(stmt.Init)
+		p.print("; ")
+	}
+	if stmt.Cond != nil {
+		p.printNode(stmt.Cond)
+	}
+	if stmt.Post != nil {
+		p.print("; ")
+		p.printNode(stmt.Post)
+	}
+
+	p.BlockStmt(stmt.Body)
 }
 
-/*
-func (p *printer) printFile(file *ast.File) {
-	p.printCommentGroup(file.Doc)
-
-	p.writeLine("package", file.Name.Name)
-
-	p.writeString("import (")
-	p.indent()
-	for _, imp := range file.Imports {
+func (p *printer) FuncDecl(decl *ast.FuncDecl) {
+	if decl.Doc != nil {
+		p.CommentGroup(decl.Doc)
 		p.writeIndent()
-		if imp.Name != nil {
-			p.write(imp.Name.Name)
-		}
-		p.write(imp.Path.Value)
-		p.writeEol()
+	}
+	p.print("func ")
+	if decl.Recv != nil {
+		p.paramsList(decl.Recv)
+	}
+	p.Ident(decl.Name)
+	p.FuncType(decl.Type)
+	p.BlockStmt(decl.Body)
+}
+
+func (p *printer) FuncLit(lit *ast.FuncLit) {
+	p.FuncType(lit.Type)
+	p.BlockStmt(lit.Body)
+}
+
+func (p *printer) FuncType(t *ast.FuncType) {
+	p.paramsList(t.Params)
+	p.print(" ")
+	if t.Results != nil {
+		p.paramsList(t.Results)
+	}
+}
+
+func (p *printer) GenDecl(decl *ast.GenDecl) {
+	if decl.Doc != nil {
+		p.CommentGroup(decl.Doc)
+	}
+	p.printIndented(decl.Tok.String(), " (")
+	p.indent()
+	for _, spec := range decl.Specs {
+		p.writeIndent()
+		p.printNode(spec)
 	}
 	p.unindent()
-	p.writeString(")")
+	p.printIndented(")")
+}
 
-	if file.Decls != nil {
-		for _, decl := range file.Decls {
-			p.fprint(decl)
-		}
+func (p *printer) GoStmt(stmt *ast.GoStmt) {
+	p.print("go ")
+	p.CallExpr(stmt.Call)
+}
+
+func (p *printer) Ident(id *ast.Ident) {
+	p.print(id.Name)
+}
+
+func (p *printer) IfStmt(stmt *ast.IfStmt) {
+	p.printIndented("if ")
+	if stmt.Init != nil {
+		p.printNode(stmt.Init)
+		p.print("; ")
+	}
+	p.printNode(stmt.Cond)
+	p.BlockStmt(stmt.Body)
+	if stmt.Else != nil {
+		p.printIndented(" else ")
+		p.printNode(stmt.Else)
 	}
 }
-*/
+
+func (p *printer) ImportSpec(spec *ast.ImportSpec) {
+	if spec.Doc != nil {
+		p.CommentGroup(spec.Doc)
+		p.writeIndent()
+	}
+	if spec.Name != nil {
+		p.Ident(spec.Name)
+		p.print(" ")
+	}
+	p.BasicLit(spec.Path)
+	if spec.Comment != nil {
+		p.CommentGroup(spec.Comment)
+	}
+}
+
+func (p *printer) IncDecStmt(stmt *ast.IncDecStmt) {
+	p.printNode(stmt.X)
+	p.print(stmt.Tok.String())
+}
+
+func (p *printer) IndexExpr(expr *ast.IndexExpr) {
+	p.printNode(expr.X)
+	p.print("[")
+	p.printNode(expr.Index)
+	p.print("]")
+}
+
+func (p *printer) InterfaceType(t *ast.InterfaceType) {
+	p.print("interface {")
+	p.indent()
+	p.fieldList(t.Methods, false)
+	p.unindent()
+	p.printIndented("}")
+}
+
+func (p *printer) KeyValueExpr(expr *ast.KeyValueExpr) {
+	p.printNode(expr.Key)
+	p.print(": ")
+	p.printNode(expr.Value)
+}
+
+func (p *printer) LabeledStmt(stmt *ast.LabeledStmt) {
+	p.Ident(stmt.Label)
+	p.print(":")
+	p.printNode(stmt.Stmt)
+}
+
+func (p *printer) MapType(t *ast.MapType) {
+	p.print("map[")
+	p.printNode(t.Key)
+	p.print("]")
+	p.printNode(t.Value)
+}
+
+func (p *printer) ParenExpr(expr *ast.ParenExpr) {
+	p.print("(")
+	p.printNode(expr.X)
+	p.print(")")
+}
+
+func (p *printer) RangeStmt(stmt *ast.RangeStmt) {
+	p.print("for ")
+	p.printNode(stmt.Key)
+	if stmt.Value != nil {
+		p.print(", ")
+		p.printNode(stmt.Value)
+	}
+	p.print(" ", stmt.Tok.String(), " range")
+	p.printNode(stmt.X)
+	p.BlockStmt(stmt.Body)
+}
+
+func (p *printer) ReturnStmt(stmt *ast.ReturnStmt) {
+	p.print("return ")
+	if stmt.Results != nil {
+		p.Exprs(stmt.Results)
+	}
+}
+
+func (p *printer) SelectStmt(stmt *ast.SelectStmt) {
+	p.print(" select ")
+	p.BlockStmt(stmt.Body)
+}
+
+func (p *printer) SelectorExpr(expr *ast.SelectorExpr) {
+	p.printNode(expr.X)
+	p.print(".")
+	p.Ident(expr.Sel)
+}
+
+func (p *printer) SendStmt(stmt *ast.SendStmt) {
+	p.printNode(stmt.Chan)
+	p.print(" <- ")
+	p.printNode(stmt.Value)
+}
+
+func (p *printer) SliceExpr(expr *ast.SliceExpr) {
+	p.printNode(expr.X)
+	p.print("[")
+	if expr.Low != nil {
+		p.printNode(expr.Low)
+	}
+	p.print(":")
+	if expr.High != nil {
+		p.printNode(expr.High)
+	}
+	if expr.Slice3 {
+		p.print(":")
+		if expr.Max != nil {
+			p.printNode(expr.Max)
+		}
+	}
+	p.print("]")
+}
+
+func (p *printer) StarExpr(expr *ast.StarExpr) {
+	p.print("*")
+	p.printNode(expr.X)
+}
+
+func (p *printer) StructType(t *ast.StructType) {
+	p.print("struct {")
+	p.indent()
+	p.fieldList(t.Fields, false)
+	p.unindent()
+	p.printIndented("}")
+}
+
+func (p *printer) SwitchStmt(stmt *ast.SwitchStmt) {
+	p.print("switch ")
+	if stmt.Init != nil {
+		p.printNode(stmt.Init)
+		p.print("; ")
+	}
+	if stmt.Tag != nil {
+		p.printNode(stmt.Tag)
+	}
+	p.BlockStmt(stmt.Body)
+}
+
+func (p *printer) TypeAssertExpr(expr *ast.TypeAssertExpr) {
+	p.printNode(expr.X)
+	p.print(".(")
+	if expr.Type != nil {
+		p.printNode(expr.Type)
+	} else {
+		p.print("type")
+	}
+	p.print(")")
+}
+
+func (p *printer) TypeSpec(spec *ast.TypeSpec) {
+	if spec.Doc != nil {
+		p.CommentGroup(spec.Doc)
+		p.writeIndent()
+	}
+	// not need tabs - tabs in block
+	p.Ident(spec.Name)
+	p.print(" ")
+	p.printNode(spec.Type)
+	if spec.Comment != nil {
+		p.CommentGroup(spec.Comment)
+	}
+}
+
+func (p *printer) TypeSwitchStmt(stmt *ast.TypeSwitchStmt) {
+	p.print("switch ")
+	if stmt.Init != nil {
+		p.printNode(stmt.Init)
+		p.print("; ")
+	}
+	p.printNode(stmt.Assign)
+	p.BlockStmt(stmt.Body)
+}
+
+func (p *printer) UnaryExpr(expr *ast.UnaryExpr) {
+	p.print(expr.Op.String())
+	p.printNode(expr.X)
+}
+
+func (p *printer) ValueSpec(spec *ast.ValueSpec) {
+	if spec.Doc != nil {
+		p.CommentGroup(spec.Doc)
+		p.writeIndent()
+	}
+	// not need tabs - tabs in block
+	p.Names(spec.Names)
+	if spec.Type != nil {
+		p.print(" ")
+		p.printNode(spec.Type)
+	}
+	if spec.Values != nil {
+		p.print(" = ")
+		p.Exprs(spec.Values)
+	}
+	if spec.Comment != nil {
+		p.CommentGroup(spec.Comment)
+	}
+}
